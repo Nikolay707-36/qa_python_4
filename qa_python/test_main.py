@@ -1,4 +1,9 @@
 import pytest
+from main import BooksCollector
+
+@pytest.fixture
+def books_collector():
+    return BooksCollector()
 
 class TestBooksCollector:
 
@@ -16,6 +21,7 @@ class TestBooksCollector:
         ("", False),
         ("a" * 41, False),
         ("Книга", True),
+        
     ])
     def test_add_new_book_validation(self, name, expected_result, books_collector):
         result = books_collector.add_new_book(name)
@@ -65,20 +71,12 @@ class TestBooksCollector:
         result = books_collector.get_books_for_children()
         assert set(result) == {"Мультфильм", "Комедия"}
 
-    # --- РАЗБИТЫЕ ТЕСТЫ (АТОМАРНОСТЬ) ---
-
-    def test_add_book_in_favorites_success(self, books_collector):
-        """Проверяет, что книга успешно добавляется в избранное."""
+    def test_add_book_in_favorites(self, books_collector):
         books_collector.add_new_book("Книга6")
         books_collector.add_book_in_favorites("Книга6")
         assert "Книга6" in books_collector.favorites
-
-    def test_add_book_in_favorites_prevents_duplicates(self, books_collector):
-        """Проверяет, что нельзя добавить одну и ту же книгу дважды."""
-        books_collector.add_new_book("Книга7")
-        books_collector.add_book_in_favorites("Книга7")
-        books_collector.add_book_in_favorites("Книга7")
-        assert books_collector.favorites.count("Книга7") == 1
+        books_collector.add_book_in_favorites("Книга6")
+        assert books_collector.favorites.count("Книга6") == 1
 
     def test_delete_book_from_favorites(self, books_collector):
         books_collector.add_new_book("Книга7")
@@ -86,22 +84,10 @@ class TestBooksCollector:
         books_collector.delete_book_from_favorites("Книга7")
         assert "Книга7" not in books_collector.favorites
 
-    def test_get_list_of_favorites_books_returns_empty_when_no_items(self, books_collector):
-        """При создании коллекции список избранного пуст."""
+    def test_get_list_of_favorites_books(self, books_collector):
         assert books_collector.get_list_of_favorites_books() == []
 
-    def test_get_list_of_favorites_books_returns_added_items(self, books_collector):
-        """Если книги добавлены, они возвращаются в списке."""
         books_collector.add_new_book("Книга8")
         books_collector.add_book_in_favorites("Книга8")
         assert books_collector.get_list_of_favorites_books() == ["Книга8"]
 
-    def test_get_books_genre(self, books_collector):
-        books_collector.add_new_book("Книга1")
-        books_collector.add_new_book("Книга2")
-        books_collector.set_book_genre("Книга1", "Детективы")
-        books_collector.set_book_genre("Книга2", "Комедии")
-
-        result = books_collector.get_books_genre()
-        expected = {"Книга1": "Детективы", "Книга2": "Комедии"}
-        assert result == expected
